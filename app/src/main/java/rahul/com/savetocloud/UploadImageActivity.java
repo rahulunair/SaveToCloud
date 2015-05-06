@@ -33,8 +33,13 @@ public class UploadImageActivity extends Activity {
         setContentView(R.layout.upload_image);
 
         // start the service to monitor image folder and save data,
+        //
+        // Directions:
+        //
+        // Copy the ParseApplication contents to your Application class
+        // or the oncreate of main activity.
         // Copy the libraries in libs folder to your libs folder,
-        // then copy the MonitorNdSave class and make changes in manifest file
+        // then Copy the MonitorNdSave class and make changes in manifest file
         // to manually add this service to the
         // application and also to give network access and file read access
         // to the app. Then put this line in the onCreate method of
