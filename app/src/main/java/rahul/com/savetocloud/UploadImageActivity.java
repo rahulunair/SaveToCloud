@@ -23,16 +23,25 @@ import android.widget.Toast;
  * Created by rahul on 5/5/15.
  */
 public class UploadImageActivity extends Activity {
+    // This is a demo activity for parse image uploader
+
     Button button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Get the view from main.xml
         setContentView(R.layout.upload_image);
 
-        // start the service to monitor image folder and save data
+        // start the service to monitor image folder and save data,
+        // Copy the libraries in libs folder to your libs folder,
+        // then copy the MonitorNdSave class and make changes in manifest file
+        // to manually add this service to the
+        // application and also to give network access and file read access
+        // to the app. Then put this line in the onCreate method of
+        // the launcher activity of the tracking app, then change the folder path,
+        // set in the MonitorNdSave class to the
+        // appropriate path name.
+
         startService(new Intent(this, MonitorNdSave.class));
 
         // Locate the button in main.xml

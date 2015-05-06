@@ -7,7 +7,7 @@ import android.graphics.BitmapFactory;
 import android.os.FileObserver;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
+
 
 import com.parse.ParseFile;
 import com.parse.ParseObject;
@@ -15,12 +15,18 @@ import com.parse.ParseObject;
 import java.io.ByteArrayOutputStream;
 
 public class MonitorNdSave extends Service {
+    // service that monitors if images are saved to a folder from camera and saves it to cloud when
+    // and image is saved to local
 
-    private FileObserver observer;
-    // FILELOC pointed to the default location where camera saves pictures
+    private static final String TAG = "MonitorNdSave";
+
+    // FILELOC pointed to the default location where camera saves pictures, change it to appropriate
+    // folder
     private static String FILELOC = android.os.Environment.
             getExternalStorageDirectory().toString() + "/DCIM/Camera";
-    private static final String TAG = "MonitorNdSave";
+
+
+    private FileObserver observer;
 
 
     public MonitorNdSave() {
@@ -40,14 +46,21 @@ public class MonitorNdSave extends Service {
         Runnable th = new Runnable() {
             public void run() {
 
-                observer = new FileObserver(FILELOC) {
-
+                observer = new FileObserver(FILELOC, FileObserver.CLOSE_WRITE) {
                     @Override
                     public void onEvent(int event, String file) {
-                        String imgFile;
-                        imgFile = FILELOC + "/" + file;
-                        Log.d(TAG, "File created [" + FILELOC + imgFile + "]");
-                        uploadImg (imgFile); // function to save image to cloud
+                        if (event == FileObserver.CLOSE_WRITE) {
+                            String extension = "";
+
+                            int i = file.lastIndexOf('.');
+                            if (i > 0) {
+                                extension = file.substring(i + 1);
+                            }
+                            String imgFile;
+                            imgFile = FILELOC + "/" + file;
+                            Log.d(TAG, extension);
+                            uploadImg(imgFile); // function to save image to cloud
+                        }
                     }
                 };
                 observer.startWatching();
@@ -57,6 +70,7 @@ public class MonitorNdSave extends Service {
         Thread t = new Thread(th);
         t.start();
         return Service.START_STICKY;
+
     }
 
 
@@ -69,36 +83,27 @@ public class MonitorNdSave extends Service {
 
     private void uploadImg(String imgFile) {
 
+        // compress the image
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = 8;
         final Bitmap bitmap = BitmapFactory.decodeFile(imgFile, options);
-        // Convert it to byte
+
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        // Compress image to lower quality scale 1 - 100
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
         byte[] image = stream.toByteArray();
 
-        // Create the ParseFile
+        // save the image
         ParseFile file = new ParseFile("trackers.jpeg", image);
-        // Upload the image into Parse Cloud
         file.saveInBackground();
 
-        // Create a New Class called "ImageUpload" in Parse
-        ParseObject imgupload = new ParseObject("ImageUpload");
-
+        // Create a New Class called "BotPics" in Parse
+        ParseObject imgupload = new ParseObject("BotPics");
         // Create a column named "ImageName" and set the string
         imgupload.put("ImageName", "Trackers");
-
         // Create a column named "ImageFile" and insert the image
         imgupload.put("ImageFile", file);
-
         // Create the class and the columns
         imgupload.saveInBackground();
-
-        // Show a simple toast message
-        Toast.makeText(MonitorNdSave.this, "Image Uploaded",
-                Toast.LENGTH_SHORT).show();
-
 
     }
 }
